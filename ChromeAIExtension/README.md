@@ -2,19 +2,6 @@
 
 A powerful Chrome Extension that uses Multimodal AI (Gemini 2.0 Flash) to analyze YouTube videos in real-time. It can visually detect specific objects/actions AND understand the conversation context using subtitles.
 
-## 🚀 System Architecture
-
-```mermaid
-graph LR
-    User[User / Browser Tab] -->|1. Frame + Captions| ContentScript
-    ContentScript -->|2. Message (Base64 + Text)| BackgroundWorker
-    BackgroundWorker -->|3. HTTP POST (JSON)| PythonServer
-    PythonServer -->|4. Prompt + Image + History| GeminiAI[Google Gemini 2.0 API]
-    GeminiAI -->|5. Implementation Analysis| PythonServer
-    PythonServer -->|6. Result (JSON)| BackgroundWorker
-    BackgroundWorker -->|7. Callback| ContentScript
-    ContentScript -->|8. Red Overlay| User
-```
 
 ## ✨ Key Features & Technical Details
 
