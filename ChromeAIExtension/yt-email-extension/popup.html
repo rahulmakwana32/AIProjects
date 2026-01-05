@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            width: 350px;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f5f5f5;
+        }
+
+        h1 {
+            font-size: 18px;
+            margin: 0 0 15px 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section {
+            margin-bottom: 15px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            width: 100%;
+            margin-top: 5px;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            display: block;
+        }
+
+        .info-text {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .free-badge {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .feature-list {
+            font-size: 12px;
+            color: #555;
+            margin: 10px 0 0 0;
+            padding-left: 20px;
+        }
+
+        .feature-list li {
+            margin: 5px 0;
+        }
+
+        .api-info {
+            font-size: 11px;
+            color: #999;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        .status-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #e9f7ef;
+            border-radius: 8px;
+            border: 1px solid #d0eddf;
+        }
+
+        .status-icon {
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .status-text strong {
+            display: block;
+            font-size: 14px;
+            color: #28a745;
+            margin-bottom: 2px;
+        }
+
+        .status-text {
+            font-size: 12px;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>
+        <span>🤖 AI Video Detector</span>
+    </h1>
+
+    <div class="section">
+        <div class="status-container">
+            <div class="status-item">
+                <div class="status-icon">👁️</div>
+                <div class="status-text">
+                    <strong>Active Monitoring</strong>
+                    Automatically detects content in videos using AI. No setup required!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label for="customPrompt">Custom Detection Prompt:</label>
+        <textarea id="customPrompt" rows="4"
+            placeholder="Enter what you want to detect (e.g., 'Detect if there is a cat in the video')..."></textarea>
+        <button id="savePrompt" class="action-btn">Save Settings</button>
+        <div id="saveStatus" style="display:none; color: green; font-size: 12px; margin-top: 5px;">Settings Saved!</div>
+    </div>
+
+    <ul class="feature-list">
+        <li>✓ Automatic detection every 3 seconds</li>
+        <li>✓ No API key needed</li>
+        <li>✓ Works on any video site</li>
+        <li>✓ Smart caching to save resources</li>
+    </ul>
+    </div>
+
+    <div class="section">
+        <button id="checkNow">🔍 Check Current Videos</button>
+        <div id="status" class="status"></div>
+    </div>
+
+    <div class="api-info">
+        <strong>How it works:</strong> Extension monitors videos and sends frames to our AI server for analysis.
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>
