@@ -9,55 +9,9 @@ The system consists of three main parts:
 2.  **Python API Server (Backend)**: Handles logic, caching, state management, and AI processing.
 3.  **Google Gemini API (External)**: Provides the multimodal AI intelligence.
 
-```mermaid
-graph TD
-    subgraph Client ["Chrome Extension (Client)"]
-        User[User / Interaction] --> Popup[Popup UI]
-        Popup -- "Save Prompts" --> Storage[(Chrome Storage)]
-        
-        subgraph Tab ["Tab Context"]
-            Video[Video Player] -- "Frame Capture" --> ContentScript[Content Script]
-            Subs[Subtitles/DOM] -- "Scrape Text" --> ContentScript
-            ContentScript -- "Check Ads" --> Ads{Ad Playing?}
-        end
-        
-        Ads -- "Yes" --> Skip[Skip Analysis]
-        Ads -- "No" --> MsgPass[Message Parsing]
-        
-        MsgPass -- "analyzeFrame" --> Background[Background Service Worker]
-        Storage -- "Get Tab-Specific Prompt" --> Background
-    end
+ ![AI Video Detector Architecture](Flow.png)
 
-    subgraph Server ["Python Backend (FastAPI)"]
-        Background -- "POST /api/analyze" --> API[FastAPI Endpoint]
-        
-        API --> RateLimit{Rate Limit Check}
-        RateLimit -- "Exceeded" --> Error429[Return 429]
-        RateLimit -- "OK" --> SessionMgr[Session Manager]
-        
-        SessionMgr -- "Accumulate History" --> Context[(Session Context Memory)]
-        Context -- "Get Full History" --> CacheGen
-        
-        CacheGen[Cache Key Generator] -- "MD5(Image + Prompt + History)" --> CacheCheck{Check Cache}
-        
-        CacheCheck -- "Hit" --> ReturnCached[Return Cached Result]
-        CacheCheck -- "Miss" --> AIRequest[Prepare AI Request]
-    end
-
-    subgraph External ["External Services"]
-        AIRequest -- "Image + Context History" --> Gemini[Google Gemini 2.0 Flash]
-        Gemini -- "Analysis (JSON)" --> AIResponse[AI Analysis]
-    end
-    
-    AIResponse --> CacheSave[Save to Cache]
-    CacheSave --> ReturnResult[Return Analysis]
-    ReturnCached --> Background
-    ReturnResult --> Background
-    
-    Background -- "Result" --> ContentScript
-    ContentScript -- "Overlay" --> UI[Detection Overlay]
-```
-
+ 
 ## Component Breakdown
 
 ### 1. Chrome Extension (Frontend)

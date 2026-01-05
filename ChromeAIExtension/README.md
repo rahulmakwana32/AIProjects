@@ -2,6 +2,9 @@
 
 A powerful Chrome Extension that uses Multimodal AI (Gemini 2.0 Flash) to analyze YouTube videos in real-time. It can visually detect specific objects/actions AND understand the conversation context using subtitles.
 
+## 📚 Architecture
+
+![AI Video Detector Architecture](Flow.png)
 
 ## ✨ Key Features & Technical Details
 
