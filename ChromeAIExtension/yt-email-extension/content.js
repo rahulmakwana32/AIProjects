@@ -140,9 +140,18 @@ async function analyzeVideo(video) {
             console.log('🤖 Full Backend Response:', response);
 
             if (response && response.isDetected) {
-                console.log('RESPONSE DETECTED');
-                showDetectionOverlay(response.confidence, response.cached, response.summary);
-                // Redirection removed as per user request
+                console.log('RESPONSE DETECTED Let\'s go to Homepage');
+                console.log('RESPONSE DETECTED Let\'s go to Homepage');
+
+                // Stop video and redirect as requested
+                video.pause();
+                showSafetyMessage("Video does not look appropriate. Let's go to Homepage to watch something else.");
+                console.log('🛑 unsafe content detected. Redirecting in 5s...');
+                console.log('Redirecting to Homepage');
+
+                setTimeout(() => {
+                    window.location.replace("https://www.youtube.com");
+                }, 5000);
             }
         });
     } catch (error) {
@@ -195,6 +204,40 @@ function showDetectionOverlay(confidence, cached = false, summary = '') {
         overlay.style.animation = 'slideOut 0.3s ease-in';
         setTimeout(() => overlay.remove(), 300);
     }, 5000);
+}
+
+// Show safety warning message
+function showSafetyMessage(message) {
+    const existing = document.getElementById('ai-safety-overlay');
+    if (existing) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'ai-safety-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 40px;
+        border-radius: 12px;
+        z-index: 2147483647;
+        font-family: Arial, sans-serif;
+        font-size: 24px;
+        text-align: center;
+        box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+        border: 2px solid #ff4444;
+        max-width: 80%;
+    `;
+
+    overlay.innerHTML = `
+        <div style="font-size: 48px; margin-bottom: 20px;">🛡️</div>
+        <div style="margin-bottom: 20px;">${message}</div>
+        <div style="font-size: 16px; opacity: 0.7;">Redirecting to safe zone in 5 seconds...</div>
+    `;
+
+    document.body.appendChild(overlay);
 }
 
 // Get current channel name

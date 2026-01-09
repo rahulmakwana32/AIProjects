@@ -192,24 +192,15 @@ Look for characteristics like:
 - Overall appearance and context
 
 Only respond with the JSON object, nothing else. "summary" field is MANDATORY even if DETECTED is false."""
+        print(f"------------\n[FULL PROMPT SENT TO GEMINI]:\n{prompt}\n------------")
     else:
-        # Default prompt logic
-        prompt = """Analyze this image and determine if MAJORITY of the people visible in the image appear to be above 30 years old.
-
-Please respond with a JSON object in this exact format:
-{
-  "DETECTED": true/false,
-  "confidence": 0-100,
-  "reasoning": "brief explanation including approximate age ranges observed",
-  "summary": "1-sentence summary of any audio context or visual context"
-}
-
-Look for characteristics like:
-- Facial features indicating maturity (wrinkles, skin texture, facial structure)
-- Overall appearance and physical characteristics
-- If multiple people are present, majority must appear above 30 for true
- 
-Only respond with the JSON object, nothing else."""
+        # No prompt provided
+        return {
+            "DETECTED": False,
+            "confidence": 0,
+            "reasoning": "No prompt configured.",
+            "summary": "Skipped analysis."
+        }
 
     payload = {
         "contents": [
