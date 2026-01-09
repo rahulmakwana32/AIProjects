@@ -18,6 +18,7 @@ The system consists of three main parts:
 *   **Manifest V3**: Uses modern service worker architecture.
 *   **Content Script (`content.js`)**:
     *   **Observer**: Monitors video state every 3 seconds (configurable).
+    *   **Main Video Filter**: Strictly targets the main player (`.html5-main-video`) and ignores thumbnails/previews.
     *   **Capture**: Uses HTML5 Canvas to snapshot video frames.
     *   **Scraper**: Extracts text from `.ytp-caption-segment` for context.
     *   **Ad Intelligence**: Detects YouTube ad classes to pause analysis, saving tokens.
@@ -39,6 +40,9 @@ The system consists of three main parts:
 
 ### 3. AI Layer
 *   **Model**: Google Gemini 2.0 Flash.
+*   **Prompt Engineering**:
+    *   **Action/Noise Cleaning**: Strips non-visual commands ("redirect", "block") to focus on the subject.
+    *   **Semantic Expansion**: Expands concepts (e.g., "K-pop" -> look for style/groups) and supports multi-subject detection.
 *   **Input**: Multimodal (Video Frame Image + Text Transcript).
 *   **Output**: Structured JSON (`DETECTED`, `confidence`, `summary`, `reasoning`).
 

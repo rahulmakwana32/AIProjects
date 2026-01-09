@@ -21,8 +21,19 @@ function isVideoPlaying(video) {
 
 // Find all video elements on the page
 function findVideoElements() {
-    const videos = document.querySelectorAll('video');
-    return Array.from(videos);
+    // Priority 1: Main YouTube player class
+    const mainVideo = document.querySelector('.html5-main-video');
+    if (mainVideo) {
+        return [mainVideo];
+    }
+
+    // Fallback: Filter all videos by size (ignore small previews)
+    const videos = Array.from(document.querySelectorAll('video'));
+    return videos.filter(v => {
+        const rect = v.getBoundingClientRect();
+        // Ignore videos smaller than 300x200 (likely thumbnails/previews)
+        return rect.width > 300 && rect.height > 200;
+    });
 }
 
 // Check if extension is connected
@@ -351,12 +362,17 @@ function startMonitoring() {
         videos.forEach(video => {
             if (isVideoPlaying(video)) {
                 const videoId = video.src || video.currentSrc || 'unknown';
+                const rect = video.getBoundingClientRect();
+
+                // Double check size in loop
+                if (rect.width < 300) return;
+
                 const now = Date.now();
                 const lastCheck = lastCheckTime[videoId] || 0;
 
                 if (now - lastCheck > RECHECK_INTERVAL) {
                     const timeSinceLastCheck = ((now - lastCheck) / 1000).toFixed(0);
-                    console.log(`🔄 AI Detector: Re-checking video (${timeSinceLastCheck}s since last check)`);
+                    console.log(`🔄 AI Detector: Re-checking video (${timeSinceLastCheck}s since last check) | Size: ${Math.round(rect.width)}x${Math.round(rect.height)}`);
 
                     lastCheckTime[videoId] = now;
                     analyzeVideo(video);

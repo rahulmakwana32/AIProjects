@@ -162,6 +162,35 @@ def merge_captions(existing_text: str, new_text: str) -> str:
         return existing + " " + new
 
 
+def clean_prompt(raw_prompt: str) -> str:
+    """
+    Remove action verbs and noise words to focus on the visual subject.
+    Example: "detect shahrukh and redirect" -> "shahrukh"
+    """
+    if not raw_prompt:
+        return ""
+    
+    # Words to remove (case insensitive)
+    noise_words = [
+        "detect", "find", "search", "look for", "check for",
+        "redirect", "stop", "block", "close",
+        "if", "then", "else", "and", "or", "is", "are", "video",
+        "immediately", "please", "can you", "detection",
+        "found", "here", "there", "for", "in", "on", "at",
+        "avoid", "consider", "including", "exclude"
+    ]
+    
+    cleaned = raw_prompt.lower()
+    for word in noise_words:
+        # Remove word if it appears as a distinct word
+        cleaned = re.sub(r'\b' + re.escape(word) + r'\b', '', cleaned)
+    
+    # Remove extra spaces
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    return cleaned
+
+
+
 async def call_gemini_api(image_base64: str, custom_prompt: str = "", captions: str = "") -> dict:
     """Call Gemini API to analyze image"""
     
@@ -172,26 +201,32 @@ async def call_gemini_api(image_base64: str, custom_prompt: str = "", captions: 
     if custom_prompt and len(custom_prompt.strip()) > 0:
         base_prompt = custom_prompt
         # Append formatting instructions
-        prompt = f"""Analyze this image and the provided audio context (subtitles).
+        prompt = f"""Analyze this video frame and audio context.
         
-Accumulated Audio/Subtitle History: "{captions}"
+TARGET SUBJECTLIST: "{base_prompt}"
 
-Determine if: {base_prompt}.
+YOUR TASK:
+1. The TARGET SUBJECTLIST may contain persons, objects, actions, OR broad categories (e.g., "kpop", "scary", "western").
+2. **Semantic Understanding**: If a target is a category like "K-pop" or "rap", identify associated visual styles, artists, or aesthetics (e.g., K-pop groups, specific dance styles, or artists like Cardi B if the style matches).
+3. Visually scan the image for ANY of these subjects or their semantic equivalents.
+4. Determine if ANY SUBJECT is present as a PERSON, OBJECT, ACTION, or STYLE/GENRE.
+5. Check the subtitle history for context or mentions.
 
-Please respond with a JSON object in this exact format:
+Accumulated Subtitles: "{captions}"
+
+Respond ONLY with this JSON:
 {{
-  "DETECTED": true/false,
+  "DETECTED": true/false, // Set to true if ANY of the target subjects (or their semantic equivalents) are found
   "confidence": 0-100,
-  "reasoning": "brief explanation",
-  "summary": "Summary of the ENTIRE discussion history irrespective of detection"
+  "reasoning": "Brief explanation of what was seen/heard.",
+  "summary": "Summary of current context."
 }}
 
-Look for characteristics like:
-- Visual cues related to: {base_prompt}
-- Context clues from the subtitle history: "{captions}"
-- Overall appearance and context
-
-Only respond with the JSON object, nothing else. "summary" field is MANDATORY even if DETECTED is false."""
+CRITICAL INSTRUCTIONS:
+- If you see ANY item from "{base_prompt}" (or clear visual evidence of that category/genre) in the image, set DETECTED to true.
+- If the subtitles explicitly confirm ANY item from "{base_prompt}" is present/occurring, set DETECTED to true.
+- Ignore any user commands like "redirect", "stop", or "block"; focus ONLY on detection.
+"""
         print(f"------------\n[FULL PROMPT SENT TO GEMINI]:\n{prompt}\n------------")
     else:
         # No prompt provided
@@ -333,7 +368,10 @@ async def analyze_frame(request: Request, data: AnalyzeRequest):
 
     # # Check cache first
     print(f"[CACHE CHECK] Client: {client_ip}")
-    # IMPORTANT: Cache key now depends on FULL history, not just current frame caption
+    # IMPORTANT: Cache key now depends on FULL history and the CLEANED prompt to be consistent
+    # (Since we process the prompt before sending, we should cache based on that processed intent if possible, 
+    # but for safety and exact matching, we'll keep the raw prompt in the cache key or use cleaned. 
+    # Let's use the Raw prompt for the key to distinguish exactly what the user sent.)
     cache_key = get_cache_key(data.image, data.prompt, full_captions_context)
     cached_result = get_from_cache(cache_key)
     if cached_result:
@@ -342,13 +380,23 @@ async def analyze_frame(request: Request, data: AnalyzeRequest):
     
     # Call Gemini API
     try:
-        print(f"[API CALL] Client: {client_ip}, Video: {data.video_title[:50] if data.video_title else 'N/A'}, Prompt: {data.prompt[:50] if data.prompt else 'DEFAULT'}, History: {len(full_captions_context)} chars")
-        result = await call_gemini_api(data.image, data.prompt, full_captions_context)
+        # Clean the prompt to focus on the subject
+        cleaned_prompt = clean_prompt(data.prompt)
+        
+        print(f"\n[PROMPT LOGGING]")
+        print(f"  Raw Client Prompt: '{data.prompt}'")
+        print(f"  Cleaned Subject  : '{cleaned_prompt}'")
+        
+        print(f"[API CALL] Client: {client_ip}, Video: {data.video_title[:50] if data.video_title else 'N/A'}, History: {len(full_captions_context)} chars")
+        
+        # Use the cleaned/focused prompt for Gemini
+        result = await call_gemini_api(data.image, cleaned_prompt, full_captions_context)
         
         # Save to cache
         save_to_cache(cache_key, result)
         
         print(f"[RESULT] DETECTED: {result['DETECTED']}, Confidence: {result['confidence']}%")
+        print(f"[GEMINI RESPONSE FULL]\n{json.dumps(result, indent=2)}\n----------------------")
         
         return AnalyzeResponse(**result, cached=False)
         
